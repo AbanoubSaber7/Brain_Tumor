@@ -1,0 +1,30 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+.mvn/
+
+# Build outputs
+dist/
+build/
+target/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
