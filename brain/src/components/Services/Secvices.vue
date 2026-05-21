@@ -43,8 +43,9 @@
         </div>
         <div class="submit">
           <!-- <button @click="submitmodel" class="btnlink">Scan</button> -->
-          <button @click="submitmodel" :disabled="image==''?true:false" class="btnlink"> Scan </button>
-          <p class="text-danger  pt-2" v-if="image==''">You should upload img</p>
+          <button @click="submitmodel" :disabled="!image" class="btnlink"> Scan </button>
+          <p class="text-danger  pt-2" v-if="!image">You should upload img</p>
+          <p class="text-danger  pt-2" v-if="scanError">{{ scanError }}</p>
           <!-- <button @click="submitmodel2" class="btnlink"> brain stroke </button> -->
         </div>
       </div>
@@ -94,6 +95,8 @@ export default {
       ress: true,
       datas: null,
       canser: "",
+      scanError: "",
+      scanning: false,
     };
   },
   methods: {
@@ -142,29 +145,42 @@ export default {
       }
     },
     async submitmodel() {
-      if (!this.image=='') {
-        await axios
-        .post(
-          "image/upload/"+ this.userid,
-          {
-            image: this.image,
-            typeModel: 1,
-          },
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        )
-        .then((res) => {
-          console.log(res);
-          this.ress = true;
-          this.canser = res.data.canser;
-          this.datas = res.data.No;
-        })
-        .catch((err) => console.log(err));
+      this.scanError = "";
+      if (!this.image) {
+        this.scanError = "Please upload an image first.";
+        return;
       }
-      // console.log(this.image[0]);
+      if (!localStorage.getItem("token")) {
+        this.scanError = "Please login first, then try Scan again.";
+        return;
+      }
+      if (!this.userid) {
+        this.scanError = "User session missing. Please login again.";
+        return;
+      }
+      const formData = new FormData();
+      formData.append("image", this.image);
+      formData.append("typeModel", "1");
+      this.scanning = true;
+      try {
+        const res = await axios.post(`image/upload/${this.userid}`, formData);
+        this.ress = true;
+        this.canser = res.data.canser;
+        this.datas = res.data.No;
+      } catch (err) {
+        const status = err.response?.status;
+        if (status === 401 || status === 403) {
+          this.scanError = "Session expired. Please login again.";
+        } else {
+          this.scanError =
+            err.response?.data?.message ||
+            err.response?.data ||
+            "Scan failed. Make sure Python (port 5000) and Java (port 8082) are running.";
+        }
+        console.log(err);
+      } finally {
+        this.scanning = false;
+      }
     },
     async submitmodel2() {
       console.log(this.userid);

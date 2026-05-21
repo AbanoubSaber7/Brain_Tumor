@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -33,19 +34,25 @@ public class AuthFilter extends OncePerRequestFilter {
         log.info("Path is >> " + request.getRequestURL());
         final SecurityContext securityContext = SecurityContextHolder.getContext();
 
-        if (jwtTokenHeader != null && securityContext.getAuthentication() == null) {
-            String jwtToken = jwtTokenHeader.substring("Bearer ".length());
-            if (tokenUtil.validateToken(jwtToken, request)) {
-                String username = tokenUtil.getUserNameFromToken(jwtToken);
-                if (username != null) {
-                    AppUserDetail userDetails = (AppUserDetail) userService.loadUserByUsername(username);
-                    if (tokenUtil.isTokenValid(jwtToken, userDetails)) {
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (jwtTokenHeader != null && jwtTokenHeader.startsWith("Bearer ") && securityContext.getAuthentication() == null) {
+            try {
+                String jwtToken = jwtTokenHeader.substring("Bearer ".length());
+                if (tokenUtil.validateToken(jwtToken, request)) {
+                    String username = tokenUtil.getUserNameFromToken(jwtToken);
+                    if (username != null) {
+                        AppUserDetail userDetails = (AppUserDetail) userService.loadUserByUsername(username);
+                        if (tokenUtil.isTokenValid(jwtToken, userDetails)) {
+                            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                    userDetails, null, userDetails.getAuthorities());
+                            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                        }
                     }
                 }
+            } catch (UsernameNotFoundException ex) {
+                log.warn("JWT user not found in database (stale token?). Path={}", request.getRequestURI());
+            } catch (Exception ex) {
+                log.warn("JWT authentication skipped. Path={} reason={}", request.getRequestURI(), ex.getMessage());
             }
         }
 

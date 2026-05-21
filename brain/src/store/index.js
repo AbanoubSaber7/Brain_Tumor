@@ -97,7 +97,8 @@ const actions = {
         throw new Error("Could not Complete patient Login ..");
       }
     } catch (err) {
-       console.log(err);
+      console.log(err);
+      throw err;
     }
   },
   async patientLogin(context, data) {
@@ -116,7 +117,8 @@ const actions = {
       } 
 
     } catch (err) {
-       console.log(err);
+      console.log(err);
+      throw err;
     }
   },
 
@@ -158,7 +160,7 @@ export default createStore({
     createPersistedState({
       getState: (key) => cookies.getJSON(key),
       setState: (key, state) =>
-        cookies.set(key, state, { expires: 3, secure: true }),
+        cookies.set(key, state, { expires: 3, secure: false }),
     }),
   ],
 });

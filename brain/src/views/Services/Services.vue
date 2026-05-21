@@ -22,8 +22,8 @@
 </template>
 
 <script>
-import { computed, onMounted, reactive } from "vue";
-
+import { onMounted, reactive } from "vue";
+import axios from "axios";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import Secvices from '../../components/Services/Secvices.vue'
@@ -43,13 +43,14 @@ export default {
     const store = useStore();
     const router = useRouter();
     onMounted(() => {
-      if (store.state.patient == null) {
+      const token = localStorage.getItem("token");
+      if (store.state.patient == null || !token) {
         router.push("/login");
+        return;
       }
-      else
-      {
-        state.userid=store.state.patient.id
-
+      state.userid = store.state.patient.id;
+      if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
     });
     

@@ -76,8 +76,7 @@ export default {
     });
     const store = useStore();
     onMounted(() => {
-      console.log(store.state.patient);
-      if (store.state.patient != null) {
+      if (store.state.patient != null && localStorage.getItem("token")) {
         router.push("/");
       }
     });
