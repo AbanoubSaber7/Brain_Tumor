@@ -75,7 +75,7 @@ export default {
   },
   setup() {
     const state = reactive({
-      login: true
+      login: false
     });
     const store = useStore();
     const router = useRouter();

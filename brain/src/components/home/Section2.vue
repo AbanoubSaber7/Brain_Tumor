@@ -15,7 +15,7 @@
                 accurate diagnoses and valuable insights regarding their medical
                 condition.
               </p>
-              <router-link to="">Scan now</router-link>
+              <router-link to="/services">Scan now</router-link>
             </div>
           </div>
           <br>
