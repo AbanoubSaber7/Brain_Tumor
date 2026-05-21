@@ -28,3 +28,6 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Runtime uploads (local scan test images)
+GradModel/upload/
